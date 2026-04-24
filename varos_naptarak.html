@@ -4,193 +4,227 @@
 <head>
 <meta charset="UTF-8">
 <title>Főhaven – Városnaptárak</title>
-
 <style>
 body {
     font-family: Arial, sans-serif;
-    background: #f0f0f0;
-    margin: 20px;
+    background: #f4f6fb;
+    margin: 0;
+    padding: 0 0 40px 0;
+}
+
+h1 {
+    text-align: center;
+    margin-top: 10px;
+    color: #1a2a4f;
 }
 
 .logo-container {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    z-index: 9999;
+    text-align: center;
+    margin-top: 10px;
 }
 
 .logo-container img {
-    height: 70px;
-    width: auto;
+    height: 60px;
 }
 
 .city-calendar {
-    background: #ffffff;
-    border: 1px solid #cccccc;
-    margin-bottom: 25px;
-    padding: 10px 15px;
-    border-radius: 6px;
+    max-width: 1100px;
+    margin: 25px auto;
+    background: white;
+    border-radius: 14px;
+    padding: 18px 20px 22px 20px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    border: 1px solid #dde3f0;
 }
 
 .city-title {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 14px;
+    color: #1a2a4f;
 }
 
 .day-row {
     display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 6px;
-}
-
-.day-card {
-    min-width: 90px;
-    padding: 8px 0;
-    text-align: center;
-    border-radius: 4px;
-    border: 1px solid #cccccc;
-    cursor: pointer;
-    background: #ffffff;
-    color: #000000;
-}
-
-.day-card.betelt {
-    background: #ff4d4d;
-    color: #ffffff;
-    border-color: #cc0000;
-}
-
-.day-card.no-flight {
-    background: #d0d0d0;
-    color: #555555;
-}
-
-.ticket-container {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.ticket-box {
-    background: #ffffff;
-    border: 2px solid #0078d7;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 12px;
-    position: relative;
-    display: flex;
+    gap: 10px;
     justify-content: space-between;
 }
 
-.left-block {
+.day-card {
+    flex: 1;
+    background: #f0f3ff;
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid #c7d2ff;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+    background: #e4e9ff;
+}
+
+.day-card.betelt {
+    background: #fbe4e4;
+    border-color: #f5b5b5;
+    color: #a33a3a;
+}
+
+.day-card.no-flight {
+    background: #f1f1f1;
+    border-style: dashed;
+    border-color: #cccccc;
+    color: #777;
+    cursor: default;
+}
+
+.day-name {
+    font-weight: bold;
     font-size: 15px;
-    line-height: 1.4;
+}
+
+.ticket-container {
+    margin-top: 12px;
+}
+
+.ticket-box {
+    display: flex;
+    justify-content: space-between;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    border: 1px solid #d0d7f2;
+}
+
+.left-block {
+    flex: 2;
 }
 
 .route {
-    font-size: 16px;
-    margin-bottom: 6px;
+    font-size: 17px;
+    font-weight: bold;
+    color: #1a2a4f;
+    margin-bottom: 4px;
 }
 
 .time {
-    font-size: 20px;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.jarat {
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 2px;
+}
+
+.repulo {
+    font-size: 13px;
+    color: #777;
+}
+
+.right-top {
+    flex: 0.8;
+    text-align: right;
+    font-size: 14px;
+    color: #333;
+}
+
+.right-bottom {
+    flex: 1;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.kapu {
     font-weight: bold;
     margin-bottom: 6px;
 }
 
-.jarat {
-    font-size: 15px;
-    margin-bottom: 4px;
-}
-
-.repulo {
-    font-size: 14px;
-    color: #444444;
-}
-
-.right-top {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    text-align: right;
-}
-
-.right-bottom {
-    position: absolute;
-    bottom: 10px;
-    right: 15px;
-    text-align: right;
-}
-
 .szabad {
-    font-size: 14px;
+    font-size: 13px;
     margin-bottom: 6px;
 }
 
 .ar-button {
     display: inline-block;
-    padding: 6px 14px;
-    background: #0078d7;
-    color: #000000;
-    border: 2px solid #005bb5;
-    border-radius: 6px;
+    padding: 6px 10px;
+    background: #1f6feb;
+    color: white;
+    border-radius: 16px;
+    font-weight: bold;
+    font-size: 13px;
     cursor: pointer;
-    transition: 0.15s;
 }
 
 .ar-button:hover {
-    background: #3399ff;
+    background: #1554b8;
 }
 
 .ar-betelt {
-    color: #cc0000;
+    display: inline-block;
+    padding: 6px 10px;
+    background: #c0392b;
+    color: white;
+    border-radius: 16px;
     font-weight: bold;
-    font-size: 17px;
+    font-size: 13px;
 }
 
-/* Popup nagy jegy nézethez – a jegy formátuma megegyezik a ticket-box-szal */
 .ticket-popup {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #ffffff;
-    border: 2px solid #0078d7;
-    border-radius: 10px;
-    padding: 20px;
+    background: white;
+    border-radius: 18px;
+    padding: 20px 22px 24px 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    z-index: 9999;
     width: 420px;
-    z-index: 10000;
-    box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    position: relative;
+    max-width: 90%;
+    border: 1px solid #d0d7f2;
 }
 
-/* Bal felső visszanyíl */
 .popup-back {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 26px;
+    font-size: 18px;
     cursor: pointer;
-    color: #0078d7;
+    margin-bottom: 10px;
+    color: #1f6feb;
     font-weight: bold;
 }
 
-/* Jobb oldali "Tovább" gomb */
 .popup-next {
-    display: inline-block;
-    padding: 8px 16px;
-    background: #0078d7;
-    color: #ffffff;
-    border-radius: 6px;
+    margin-top: 14px;
+    text-align: right;
+    font-size: 14px;
+    color: #1f6feb;
     cursor: pointer;
     font-weight: bold;
-    float: right;
-    margin-top: 15px;
 }
 
-</style>
-
+#popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.35);
+    display: none;
+    z-index: 9998;
+}
 </style>
 
 <script>
@@ -267,7 +301,7 @@ function showTicket(elem) {
         return;
     }
 
-    // ÚJ: <br><br> alapú blokkok
+    // <br><br> alapú blokkok
     var blocks = info.split("<br><br>");
 
     // Rendezés indulási idő szerint
@@ -332,31 +366,45 @@ function showTicket(elem) {
 }
 
 function openTicket(jaratszam, utvonal, indul, erkezik, repulo, kapu, szabad, napnev, ar) {
-    const datum = kovetkezoDatum(napnev);
+    const datumTeljes = kovetkezoDatum(napnev);
+
+    // Csak a számok maradjanak: 2026. május 1. → 2026. 1.
+    const datumRovid = datumTeljes.replace(/[^0-9\.\s]/g, "").trim();
 
     var html = "";
     html += '<div class="ticket-popup">';
-    html += '  <div class="popup-back" onclick="closePopup()">←</div>';
 
-    html += '  <div class="ticket-box" style="border-width:2px; margin-top:25px;">';
-    html += '    <div class="left-block">';
-    html += '      <div class="route">' + utvonal + '</div>';
-    html += '      <div class="time">' + indul + ' → ' + erkezik + '</div>';
-    html += '      <div class="jarat">' + jaratszam + '</div>';
-    html += '      <div class="repulo">' + repulo + '</div>';
-    html += '    </div>';
+    // Bal felső visszanyíl
+    html += '<div class="popup-back" onclick="closePopup()">←</div>';
 
-    html += '    <div class="right-top"><div class="kapu">Kapu: ' + kapu + '</div></div>';
+    // Dátum az indulás–érkezés fölött
+    html += '<div style="font-size:18px; font-weight:bold; margin-bottom:12px; text-align:center;">'
+         + datumRovid +
+         '</div>';
 
-    html += '    <div class="right-bottom">';
-    html += '      <div class="szabad">Szabad hely: ' + szabad + '</div>';
-    html += '      <div class="ar-button">' + ar + '</div>';
-    html += '    </div>';
+    // Jegy doboz – belső kék keret nélkül
+    html += '<div class="ticket-box" style="border:none; margin-top:10px;">';
+
+    html += '  <div class="left-block">';
+    html += '    <div class="route">' + utvonal + '</div>';
+    html += '    <div class="time">' + indul + ' → ' + erkezik + '</div>';
+    html += '    <div class="jarat">' + jaratszam + '</div>';
+    html += '    <div class="repulo">' + repulo + '</div>';
     html += '  </div>';
 
-    html += '  <p style="margin-top:15px; font-size:16px;"><b>Dátum:</b> ' + datum + ' (' + napnev + ')</p>';
-    html += '  <div class="popup-next">Tovább</div>';
-    html += '</div>';
+    html += '  <div class="right-top"><div class="kapu">Kapu: ' + kapu + '</div></div>';
+
+    html += '  <div class="right-bottom">';
+    html += '    <div class="szabad">Szabad hely: ' + szabad + '</div>';
+    html += '    <div class="ar-button">' + ar + '</div>';
+    html += '  </div>';
+
+    html += '</div>'; // ticket-box vége
+
+    // Tovább gomb – fehér részen, középen
+    html += '<div class="popup-next" style="float:none; margin-top:20px; text-align:center;">Tovább</div>';
+
+    html += '</div>'; // ticket-popup vége
 
     const popup = document.getElementById("popup");
     popup.innerHTML = html;
