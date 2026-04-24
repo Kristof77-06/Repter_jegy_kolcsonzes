@@ -315,7 +315,7 @@ var varosLista = [];
 """
 
 for v in cel_varosok:
-    html += f"varosLista.push('{v}');\\n"
+    html += f"varosLista.push('{v}');\n"
 html += """
 // hétfővel kezdődő hét, következő adott nap dátuma
 function kovetkezoDatum(napNev) {
@@ -380,18 +380,18 @@ function showTicket(elem) {
         return;
     }
 
-    var blocks = info.split("\\n\\n");
+    var blocks = info.split("\n\n");
 
     blocks.sort(function(a, b) {
-        var timeA = a.split("Indulás:")[1].split("\\n")[0].trim();
-        var timeB = b.split("Indulás:")[1].split("\\n")[0].trim();
+        var timeA = a.split("Indulás:")[1].split("\n")[0].trim();
+        var timeB = b.split("Indulás:")[1].split("\n")[0].trim();
         return timeA.localeCompare(timeB);
     });
 
     var html = "";
 
     blocks.forEach(function(block) {
-        var lines = block.split("\\n");
+        var lines = block.split("\n");
 
         var jaratszam = lines.find(x => x.startsWith("Járatszám: ")).replace("Járatszám: ", "");
         var utvonal   = lines.find(x => x.startsWith("Útvonal: ")).replace("Útvonal: ", "");
@@ -499,10 +499,10 @@ function closePopup() {
 <div id="popup" style="display:none;"></div>
 """
 for varos in cel_varosok:
-    html += f'<div class="city-calendar" data-varos="{varos}">\\n'
-    html += f'<div class="city-title">{varos}</div>\\n'
+    html += f'<div class="city-calendar" data-varos="{varos}">\n'
+    html += f'<div class="city-title">{varos}</div>\n'
 
-    html += '<div class="day-row">\\n'
+    html += '<div class="day-row">\n'
     for nap in napok:
         jaratok = varos_nap_jarat[varos][nap]
 
@@ -512,8 +512,8 @@ for varos in cel_varosok:
             else:
                 css = "day-card"
 
-            info = "\\n\\n".join(
-                "\\n".join([
+            info = "\n\n".join(
+                "\n".join([
                     f"Járatszám: {j.flight.jaratszam}",
                     f"Útvonal: {jarat_utvonal(j.flight)}",
                     f"Indulás: {j.indul[:-3]}",
@@ -545,13 +545,13 @@ for varos in cel_varosok:
     <div class="day-name">{nap}</div>
 </div>
 '''
-    html += "</div>\\n"
+    html += "</div>\n"
 
     for nap in napok:
         unique_id = f"{varos}_{nap}".replace(" ", "_")
-        html += f'<div class="ticket-container" id="{unique_id}"></div>\\n'
+        html += f'<div class="ticket-container" id="{unique_id}"></div>\n'
 
-    html += "</div>\\n"
+    html += "</div>\n"
 html += """
 </body>
 </html>
