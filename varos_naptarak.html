@@ -1,0 +1,601 @@
+﻿
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>Főhaven – Városnaptárak</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    margin: 20px;
+}
+
+/* Logó jobb felső sarokban */
+.logo-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
+}
+
+.logo-container img {
+    height: 70px;
+    width: auto;
+}
+
+.city-calendar {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    margin-bottom: 25px;
+    padding: 10px 15px;
+    border-radius: 6px;
+}
+
+.city-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.day-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+}
+
+.day-card {
+    min-width: 90px;
+    padding: 8px 0;
+    text-align: center;
+    border-radius: 4px;
+    border: 1px solid #cccccc;
+    cursor: pointer;
+    background: #ffffff;
+    color: #000000;
+}
+
+.day-card.betelt {
+    background: #ff4d4d;
+    color: #ffffff;
+    border-color: #cc0000;
+}
+
+.day-card.no-flight {
+    background: #d0d0d0;
+    color: #555555;
+}
+
+.ticket-container {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.ticket-box {
+    background: #ffffff;
+    border: 2px solid #0078d7;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 12px;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+}
+
+.left-block {
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.route {
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.time {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.jarat {
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.repulo {
+    font-size: 14px;
+    color: #444444;
+}
+
+.right-top {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    text-align: right;
+}
+
+.right-bottom {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    text-align: right;
+}
+
+.szabad {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.ar-button {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #0078d7;
+    color: #000000;
+    border: 2px solid #005bb5;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.ar-button:hover {
+    background: #3399ff;
+}
+
+.ar-betelt {
+    color: #cc0000;
+    font-weight: bold;
+    font-size: 17px;
+}
+
+
+/* Popup nagy jegy nézethez – a jegy formátuma megegyezik a ticket-box-szal */
+.ticket-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    border: 2px solid #0078d7;
+    border-radius: 10px;
+    padding: 20px;
+    width: 420px;
+    z-index: 10000;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    position: relative;
+}
+
+/* Bal felső visszanyíl */
+.popup-back {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 26px;
+    cursor: pointer;
+    color: #0078d7;
+    font-weight: bold;
+}
+
+/* Jobb oldali "Tovább" gomb */
+.popup-next {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #0078d7;
+    color: #ffffff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    float: right;
+    margin-top: 15px;
+}
+
+</style>
+
+<script>
+var varosLista = [];
+varosLista.push('Aérilon');\nvarosLista.push('Délmező');\nvarosLista.push('Elystria');\nvarosLista.push('Kővár');\nvarosLista.push('Nordhaven');\nvarosLista.push('Solméra');\nvarosLista.push('Valderin');\nvarosLista.push('Várkút');\n
+// hétfővel kezdődő hét, következő adott nap dátuma
+function kovetkezoDatum(napNev) {
+    const napok = ["Hétfő","Kedd","Szerda","Csütörtök","Péntek","Szombat","Vasárnap"];
+    const mai = new Date();
+    const jsDay = mai.getDay(); // 0=V,1=H,...,6=Szo
+
+    const maiIndex = (jsDay === 0 ? 6 : jsDay - 1);
+    const celIndex = napok.indexOf(napNev);
+
+    let diff = celIndex - maiIndex;
+    if (diff <= 0) diff += 7;
+
+    const celDatum = new Date();
+    celDatum.setDate(mai.getDate() + diff);
+
+    return celDatum.toLocaleDateString("hu-HU", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+    });
+}
+
+window.onload = function() {
+    var select = document.getElementById("varosvalaszto");
+    varosLista.forEach(function(v) {
+        var opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        select.appendChild(opt);
+    });
+};
+
+function filterCity() {
+    var val = document.getElementById("varosvalaszto").value;
+    document.querySelectorAll(".city-calendar").forEach(function(div) {
+        if (val === "" || div.getAttribute("data-varos") === val) {
+            div.style.display = "";
+        } else {
+            div.style.display = "none";
+        }
+    });
+}
+
+function showTicket(elem) {
+    var info = elem.getAttribute("data-info");
+    var targetId = elem.getAttribute("data-target");
+    var container = document.getElementById(targetId);
+
+    if (elem.classList.contains("no-flight")) {
+        return;
+    }
+
+    document.querySelectorAll(".ticket-container").forEach(function(c) {
+        if (c !== container) {
+            c.innerHTML = "";
+        }
+    });
+
+    if (container.innerHTML.trim() !== "") {
+        container.innerHTML = "";
+        return;
+    }
+
+    var blocks = info.split("\n\n");
+
+    blocks.sort(function(a, b) {
+        var timeA = a.split("Indulás:")[1].split("\n")[0].trim();
+        var timeB = b.split("Indulás:")[1].split("\n")[0].trim();
+        return timeA.localeCompare(timeB);
+    });
+
+    var html = "";
+
+    blocks.forEach(function(block) {
+        var lines = block.split("\n");
+
+        var jaratszam = lines.find(x => x.startsWith("Járatszám: ")).replace("Járatszám: ", "");
+        var utvonal   = lines.find(x => x.startsWith("Útvonal: ")).replace("Útvonal: ", "");
+        var indul     = lines.find(x => x.startsWith("Indulás: ")).replace("Indulás: ", "");
+        var erkezik   = lines.find(x => x.startsWith("Érkezés: ")).replace("Érkezés: ", "");
+        var repulo    = lines.find(x => x.startsWith("Repülő: ")).replace("Repülő: ", "");
+        var kapu      = lines.find(x => x.startsWith("Kapu: ")).replace("Kapu: ", "");
+        var ar        = lines.find(x => x.startsWith("Jegyár: ")).replace("Jegyár: ", "");
+        var szabad    = lines.find(x => x.startsWith("Szabad: ")).replace("Szabad: ", "");
+        var napnev    = lines.find(x => x.startsWith("Nap: ")).replace("Nap: ", "");
+
+        html += '<div class="ticket-box">';
+
+        html += '<div class="left-block">';
+        html += '<div class="route">' + utvonal + '</div>';
+        html += '<div class="time">' + indul + ' → ' + erkezik + '</div>';
+        html += '<div class="jarat">' + jaratszam + '</div>';
+        html += '<div class="repulo">' + repulo + '</div>';
+        html += '</div>';
+
+        html += '<div class="right-top">';
+        html += '<div class="kapu">Kapu: ' + kapu + '</div>';
+        html += '</div>';
+
+        html += '<div class="right-bottom">';
+        html += '<div class="szabad">Szabad hely: ' + szabad + '</div>';
+
+        if (ar === "Betelt") {
+            html += '<div class="ar-betelt">Betelt</div>';
+        } else {
+            html += `<div class="ar-button" onclick="openTicket(
+                '${jaratszam}',
+                '${utvonal}',
+                '${indul}',
+                '${erkezik}',
+                '${repulo}',
+                '${kapu}',
+                '${szabad}',
+                '${napnev}',
+                '${ar}'
+            )">${ar}</div>`;
+        }
+
+        html += '</div>';
+        html += '</div>';
+    });
+
+    container.innerHTML = html;
+}
+
+function openTicket(jaratszam, utvonal, indul, erkezik, repulo, kapu, szabad, napnev, ar) {
+    const datum = kovetkezoDatum(napnev);
+
+    var html = "";
+    html += '<div class="ticket-popup">';
+    html += '  <div class="popup-back" onclick="closePopup()">←</div>';
+
+    html += '  <div class="ticket-box" style="border-width:2px; margin-top:25px;">';
+    html += '    <div class="left-block">';
+    html += '      <div class="route">' + utvonal + '</div>';
+    html += '      <div class="time">' + indul + ' → ' + erkezik + '</div>';
+    html += '      <div class="jarat">' + jaratszam + '</div>';
+    html += '      <div class="repulo">' + repulo + '</div>';
+    html += '    </div>';
+
+    html += '    <div class="right-top"><div class="kapu">Kapu: ' + kapu + '</div></div>';
+
+    html += '    <div class="right-bottom">';
+    html += '      <div class="szabad">Szabad hely: ' + szabad + '</div>';
+    html += '      <div class="ar-button">' + ar + '</div>';
+    html += '    </div>';
+    html += '  </div>';
+
+    html += '  <p style="margin-top:15px; font-size:16px;"><b>Dátum:</b> ' + datum + ' (' + napnev + ')</p>';
+    html += '  <div class="popup-next">Tovább</div>';
+    html += '</div>';
+
+    const popup = document.getElementById("popup");
+    popup.innerHTML = html;
+    popup.style.display = "block";
+}
+
+function closePopup() {
+    document.getElementById("popup").style.display = "none";
+}
+</script>
+</head>
+<body>
+
+<div class="logo-container">
+    <img src="logo.png" alt="Logó">
+</div>
+
+<h1>Főhaven ↔ Városok – Heti naptár</h1>
+
+<label><b>Város választása:</b></label>
+<select id="varosvalaszto" onchange="filterCity()">
+    <option value="">Mind</option>
+</select>
+
+<p>Kattints egy napra a részletes járatinfóhoz, majd a jegyárra a nagy jegy nézethez.</p>
+
+<div id="popup" style="display:none;"></div>
+<div class="city-calendar" data-varos="Aérilon">\n<div class="city-title">Aérilon</div>\n<div class="day-row">\n
+<div class="day-card no-flight" data-info="" data-target="Aérilon_Hétfő" onclick="showTicket(this)">
+    <div class="day-name">Hétfő</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Aérilon_Kedd" onclick="showTicket(this)">
+    <div class="day-name">Kedd</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF201\nÚtvonal: Főhaven → Aérilon\nIndulás: 06:00\nÉrkezés: 08:00\nRepülő: Saab 340\nKapu: 1\nJegyár: 75096 Ft\nSzabad: 12\nNap: Szerda" data-target="Aérilon_Szerda" onclick="showTicket(this)">
+    <div class="day-name">Szerda</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF201R\nÚtvonal: Aérilon → Főhaven\nIndulás: 07:55\nÉrkezés: 10:00\nRepülő: Saab 340\nKapu: 1\nJegyár: 77749 Ft\nSzabad: 12\nNap: Csütörtök" data-target="Aérilon_Csütörtök" onclick="showTicket(this)">
+    <div class="day-name">Csütörtök</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF206\nÚtvonal: Főhaven → Aérilon\nIndulás: 06:00\nÉrkezés: 07:50\nRepülő: Saab 340\nKapu: 1\nJegyár: 69797 Ft\nSzabad: 12\nNap: Péntek" data-target="Aérilon_Péntek" onclick="showTicket(this)">
+    <div class="day-name">Péntek</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF206R\nÚtvonal: Aérilon → Főhaven\nIndulás: 06:05\nÉrkezés: 08:00\nRepülő: Saab 340\nKapu: 1\nJegyár: 72447 Ft\nSzabad: 12\nNap: Szombat" data-target="Aérilon_Szombat" onclick="showTicket(this)">
+    <div class="day-name">Szombat</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Aérilon_Vasárnap" onclick="showTicket(this)">
+    <div class="day-name">Vasárnap</div>
+</div>
+</div>\n<div class="ticket-container" id="Aérilon_Hétfő"></div>\n<div class="ticket-container" id="Aérilon_Kedd"></div>\n<div class="ticket-container" id="Aérilon_Szerda"></div>\n<div class="ticket-container" id="Aérilon_Csütörtök"></div>\n<div class="ticket-container" id="Aérilon_Péntek"></div>\n<div class="ticket-container" id="Aérilon_Szombat"></div>\n<div class="ticket-container" id="Aérilon_Vasárnap"></div>\n</div>\n<div class="city-calendar" data-varos="Délmező">\n<div class="city-title">Délmező</div>\n<div class="day-row">\n
+<div class="day-card" data-info="Járatszám: BF108\nÚtvonal: Főhaven → Délmező\nIndulás: 13:00\nÉrkezés: 13:40\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 13957 Ft\nSzabad: 7\nNap: Hétfő" data-target="Délmező_Hétfő" onclick="showTicket(this)">
+    <div class="day-name">Hétfő</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF108R\nÚtvonal: Délmező → Főhaven\nIndulás: 14:15\nÉrkezés: 15:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 14961 Ft\nSzabad: 7\nNap: Kedd" data-target="Délmező_Kedd" onclick="showTicket(this)">
+    <div class="day-name">Kedd</div>
+</div>
+
+<div class="day-card betelt" data-info="Járatszám: BF105\nÚtvonal: Főhaven → Délmező\nIndulás: 12:00\nÉrkezés: 12:45\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: Betelt\nSzabad: 0\nNap: Szerda" data-target="Délmező_Szerda" onclick="showTicket(this)">
+    <div class="day-name">Szerda</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF105R\nÚtvonal: Délmező → Főhaven\nIndulás: 05:10\nÉrkezés: 06:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 15978 Ft\nSzabad: 7\nNap: Csütörtök" data-target="Délmező_Csütörtök" onclick="showTicket(this)">
+    <div class="day-name">Csütörtök</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF102\nÚtvonal: Főhaven → Délmező\nIndulás: 16:00\nÉrkezés: 17:15\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 14961 Ft\nSzabad: 7\nNap: Péntek" data-target="Délmező_Péntek" onclick="showTicket(this)">
+    <div class="day-name">Péntek</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF102R\nÚtvonal: Délmező → Főhaven\nIndulás: 04:40\nÉrkezés: 06:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 15978 Ft\nSzabad: 7\nNap: Szombat" data-target="Délmező_Szombat" onclick="showTicket(this)">
+    <div class="day-name">Szombat</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Délmező_Vasárnap" onclick="showTicket(this)">
+    <div class="day-name">Vasárnap</div>
+</div>
+</div>\n<div class="ticket-container" id="Délmező_Hétfő"></div>\n<div class="ticket-container" id="Délmező_Kedd"></div>\n<div class="ticket-container" id="Délmező_Szerda"></div>\n<div class="ticket-container" id="Délmező_Csütörtök"></div>\n<div class="ticket-container" id="Délmező_Péntek"></div>\n<div class="ticket-container" id="Délmező_Szombat"></div>\n<div class="ticket-container" id="Délmező_Vasárnap"></div>\n</div>\n<div class="city-calendar" data-varos="Elystria">\n<div class="city-title">Elystria</div>\n<div class="day-row">\n
+<div class="day-card no-flight" data-info="" data-target="Elystria_Hétfő" onclick="showTicket(this)">
+    <div class="day-name">Hétfő</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Elystria_Kedd" onclick="showTicket(this)">
+    <div class="day-name">Kedd</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF205\nÚtvonal: Főhaven → Elystria\nIndulás: 16:00\nÉrkezés: 19:00\nRepülő: Saab 340\nKapu: 1\nJegyár: 98434 Ft\nSzabad: 12\nNap: Szerda" data-target="Elystria_Szerda" onclick="showTicket(this)">
+    <div class="day-name">Szerda</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF205R\nÚtvonal: Elystria → Főhaven\nIndulás: 08:55\nÉrkezés: 12:00\nRepülő: Saab 340\nKapu: 1\nJegyár: 100676 Ft\nSzabad: 12\nNap: Csütörtök" data-target="Elystria_Csütörtök" onclick="showTicket(this)">
+    <div class="day-name">Csütörtök</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF210\nÚtvonal: Főhaven → Elystria\nIndulás: 08:00\nÉrkezés: 10:55\nRepülő: Saab 340\nKapu: 1\nJegyár: 96194 Ft\nSzabad: 12\nNap: Péntek" data-target="Elystria_Péntek" onclick="showTicket(this)">
+    <div class="day-name">Péntek</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF210R\nÚtvonal: Elystria → Főhaven\nIndulás: 07:00\nÉrkezés: 10:00\nRepülő: Saab 340\nKapu: 1\nJegyár: 98434 Ft\nSzabad: 12\nNap: Szombat" data-target="Elystria_Szombat" onclick="showTicket(this)">
+    <div class="day-name">Szombat</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Elystria_Vasárnap" onclick="showTicket(this)">
+    <div class="day-name">Vasárnap</div>
+</div>
+</div>\n<div class="ticket-container" id="Elystria_Hétfő"></div>\n<div class="ticket-container" id="Elystria_Kedd"></div>\n<div class="ticket-container" id="Elystria_Szerda"></div>\n<div class="ticket-container" id="Elystria_Csütörtök"></div>\n<div class="ticket-container" id="Elystria_Péntek"></div>\n<div class="ticket-container" id="Elystria_Szombat"></div>\n<div class="ticket-container" id="Elystria_Vasárnap"></div>\n</div>\n<div class="city-calendar" data-varos="Kővár">\n<div class="city-title">Kővár</div>\n<div class="day-row">\n
+<div class="day-card betelt" data-info="Járatszám: BF103R\nÚtvonal: Kővár → Főhaven\nIndulás: 07:25\nÉrkezés: 09:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: Betelt\nSzabad: 0\nNap: Hétfő" data-target="Kővár_Hétfő" onclick="showTicket(this)">
+    <div class="day-name">Hétfő</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Kővár_Kedd" onclick="showTicket(this)">
+    <div class="day-name">Kedd</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF109\nÚtvonal: Főhaven → Kővár\nIndulás: 14:00\nÉrkezés: 16:20\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 22844 Ft\nSzabad: 7\nNap: Szerda" data-target="Kővár_Szerda" onclick="showTicket(this)">
+    <div class="day-name">Szerda</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF109R\nÚtvonal: Kővár → Főhaven\nIndulás: 12:35\nÉrkezés: 14:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 22073 Ft\nSzabad: 7\nNap: Csütörtök" data-target="Kővár_Csütörtök" onclick="showTicket(this)">
+    <div class="day-name">Csütörtök</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF106\nÚtvonal: Főhaven → Kővár\nIndulás: 14:00\nÉrkezés: 15:25\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 22073 Ft\nSzabad: 7\nNap: Péntek" data-target="Kővár_Péntek" onclick="showTicket(this)">
+    <div class="day-name">Péntek</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF106R\nÚtvonal: Kővár → Főhaven\nIndulás: 14:30\nÉrkezés: 16:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 22844 Ft\nSzabad: 7\nNap: Szombat" data-target="Kővár_Szombat" onclick="showTicket(this)">
+    <div class="day-name">Szombat</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF103\nÚtvonal: Főhaven → Kővár\nIndulás: 15:00\nÉrkezés: 16:30\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 22844 Ft\nSzabad: 7\nNap: Vasárnap" data-target="Kővár_Vasárnap" onclick="showTicket(this)">
+    <div class="day-name">Vasárnap</div>
+</div>
+</div>\n<div class="ticket-container" id="Kővár_Hétfő"></div>\n<div class="ticket-container" id="Kővár_Kedd"></div>\n<div class="ticket-container" id="Kővár_Szerda"></div>\n<div class="ticket-container" id="Kővár_Csütörtök"></div>\n<div class="ticket-container" id="Kővár_Péntek"></div>\n<div class="ticket-container" id="Kővár_Szombat"></div>\n<div class="ticket-container" id="Kővár_Vasárnap"></div>\n</div>\n<div class="city-calendar" data-varos="Nordhaven">\n<div class="city-title">Nordhaven</div>\n<div class="day-row">\n
+<div class="day-card" data-info="Járatszám: KF207R\nÚtvonal: Nordhaven → Főhaven\nIndulás: 08:15\nÉrkezés: 10:30\nRepülő: Saab 340\nKapu: 1\nJegyár: 81365 Ft\nSzabad: 12\nNap: Hétfő" data-target="Nordhaven_Hétfő" onclick="showTicket(this)">
+    <div class="day-name">Hétfő</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Nordhaven_Kedd" onclick="showTicket(this)">
+    <div class="day-name">Kedd</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Nordhaven_Szerda" onclick="showTicket(this)">
+    <div class="day-name">Szerda</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Nordhaven_Csütörtök" onclick="showTicket(this)">
+    <div class="day-name">Csütörtök</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF202\nÚtvonal: Főhaven → Nordhaven\nIndulás: 10:00\nÉrkezés: 12:15\nRepülő: Saab 340\nKapu: 1\nJegyár: 81365 Ft\nSzabad: 12\nNap: Péntek" data-target="Nordhaven_Péntek" onclick="showTicket(this)">
+    <div class="day-name">Péntek</div>
+</div>
+
+<div class="day-card betelt" data-info="Járatszám: KF202R\nÚtvonal: Nordhaven → Főhaven\nIndulás: 10:40\nÉrkezés: 12:00\nRepülő: Saab 340\nKapu: 1\nJegyár: Betelt\nSzabad: 0\nNap: Szombat" data-target="Nordhaven_Szombat" onclick="showTicket(this)">
+    <div class="day-name">Szombat</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF207\nÚtvonal: Főhaven → Nordhaven\nIndulás: 06:00\nÉrkezés: 08:10\nRepülő: Saab 340\nKapu: 1\nJegyár: 78826 Ft\nSzabad: 12\nNap: Vasárnap" data-target="Nordhaven_Vasárnap" onclick="showTicket(this)">
+    <div class="day-name">Vasárnap</div>
+</div>
+</div>\n<div class="ticket-container" id="Nordhaven_Hétfő"></div>\n<div class="ticket-container" id="Nordhaven_Kedd"></div>\n<div class="ticket-container" id="Nordhaven_Szerda"></div>\n<div class="ticket-container" id="Nordhaven_Csütörtök"></div>\n<div class="ticket-container" id="Nordhaven_Péntek"></div>\n<div class="ticket-container" id="Nordhaven_Szombat"></div>\n<div class="ticket-container" id="Nordhaven_Vasárnap"></div>\n</div>\n<div class="city-calendar" data-varos="Solméra">\n<div class="city-title">Solméra</div>\n<div class="day-row">\n
+<div class="day-card" data-info="Járatszám: KF208\nÚtvonal: Főhaven → Solméra\nIndulás: 16:30\nÉrkezés: 18:55\nRepülő: Saab 340\nKapu: 1\nJegyár: 86286 Ft\nSzabad: 12\nNap: Hétfő\n\nJáratszám: KF203R\nÚtvonal: Solméra → Főhaven\nIndulás: 05:55\nÉrkezés: 07:30\nRepülő: Saab 340\nKapu: 1\nJegyár: 88286 Ft\nSzabad: 12\nNap: Hétfő" data-target="Solméra_Hétfő" onclick="showTicket(this)">
+    <div class="day-name">Hétfő</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF208R\nÚtvonal: Solméra → Főhaven\nIndulás: 09:30\nÉrkezés: 12:00\nRepülő: Saab 340\nKapu: 1\nJegyár: 88736 Ft\nSzabad: 12\nNap: Kedd" data-target="Solméra_Kedd" onclick="showTicket(this)">
+    <div class="day-name">Kedd</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Solméra_Szerda" onclick="showTicket(this)">
+    <div class="day-name">Szerda</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Solméra_Csütörtök" onclick="showTicket(this)">
+    <div class="day-name">Csütörtök</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Solméra_Péntek" onclick="showTicket(this)">
+    <div class="day-name">Péntek</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Solméra_Szombat" onclick="showTicket(this)">
+    <div class="day-name">Szombat</div>
+</div>
+
+<div class="day-card betelt" data-info="Járatszám: KF203\nÚtvonal: Főhaven → Solméra\nIndulás: 18:00\nÉrkezés: 20:30\nRepülő: Saab 340\nKapu: 1\nJegyár: Betelt\nSzabad: 0\nNap: Vasárnap" data-target="Solméra_Vasárnap" onclick="showTicket(this)">
+    <div class="day-name">Vasárnap</div>
+</div>
+</div>\n<div class="ticket-container" id="Solméra_Hétfő"></div>\n<div class="ticket-container" id="Solméra_Kedd"></div>\n<div class="ticket-container" id="Solméra_Szerda"></div>\n<div class="ticket-container" id="Solméra_Csütörtök"></div>\n<div class="ticket-container" id="Solméra_Péntek"></div>\n<div class="ticket-container" id="Solméra_Szombat"></div>\n<div class="ticket-container" id="Solméra_Vasárnap"></div>\n</div>\n<div class="city-calendar" data-varos="Valderin">\n<div class="city-title">Valderin</div>\n<div class="day-row">\n
+<div class="day-card" data-info="Járatszám: KF204\nÚtvonal: Főhaven → Valderin\nIndulás: 06:00\nÉrkezés: 08:45\nRepülő: Saab 340\nKapu: 1\nJegyár: 94216 Ft\nSzabad: 12\nNap: Hétfő" data-target="Valderin_Hétfő" onclick="showTicket(this)">
+    <div class="day-name">Hétfő</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF204R\nÚtvonal: Valderin → Főhaven\nIndulás: 15:10\nÉrkezés: 16:00\nRepülő: Saab 340\nKapu: 1\nJegyár: 91850 Ft\nSzabad: 12\nNap: Kedd" data-target="Valderin_Kedd" onclick="showTicket(this)">
+    <div class="day-name">Kedd</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: KF209\nÚtvonal: Főhaven → Valderin\nIndulás: 10:00\nÉrkezés: 12:40\nRepülő: Saab 340\nKapu: 1\nJegyár: 91850 Ft\nSzabad: 12\nNap: Szerda" data-target="Valderin_Szerda" onclick="showTicket(this)">
+    <div class="day-name">Szerda</div>
+</div>
+
+<div class="day-card betelt" data-info="Járatszám: KF209R\nÚtvonal: Valderin → Főhaven\nIndulás: 13:15\nÉrkezés: 16:00\nRepülő: Saab 340\nKapu: 1\nJegyár: Betelt\nSzabad: 0\nNap: Csütörtök" data-target="Valderin_Csütörtök" onclick="showTicket(this)">
+    <div class="day-name">Csütörtök</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Valderin_Péntek" onclick="showTicket(this)">
+    <div class="day-name">Péntek</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Valderin_Szombat" onclick="showTicket(this)">
+    <div class="day-name">Szombat</div>
+</div>
+
+<div class="day-card no-flight" data-info="" data-target="Valderin_Vasárnap" onclick="showTicket(this)">
+    <div class="day-name">Vasárnap</div>
+</div>
+</div>\n<div class="ticket-container" id="Valderin_Hétfő"></div>\n<div class="ticket-container" id="Valderin_Kedd"></div>\n<div class="ticket-container" id="Valderin_Szerda"></div>\n<div class="ticket-container" id="Valderin_Csütörtök"></div>\n<div class="ticket-container" id="Valderin_Péntek"></div>\n<div class="ticket-container" id="Valderin_Szombat"></div>\n<div class="ticket-container" id="Valderin_Vasárnap"></div>\n</div>\n<div class="city-calendar" data-varos="Várkút">\n<div class="city-title">Várkút</div>\n<div class="day-row">\n
+<div class="day-card" data-info="Járatszám: BF104\nÚtvonal: Főhaven → Várkút\nIndulás: 13:30\nÉrkezés: 14:20\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: Betelt\nSzabad: 0\nNap: Hétfő\n\nJáratszám: BF107R\nÚtvonal: Várkút → Főhaven\nIndulás: 14:00\nÉrkezés: 15:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 17995 Ft\nSzabad: 7\nNap: Hétfő" data-target="Várkút_Hétfő" onclick="showTicket(this)">
+    <div class="day-name">Hétfő</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF104R\nÚtvonal: Várkút → Főhaven\nIndulás: 05:05\nÉrkezés: 06:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 17131 Ft\nSzabad: 7\nNap: Kedd" data-target="Várkút_Kedd" onclick="showTicket(this)">
+    <div class="day-name">Kedd</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF101\nÚtvonal: Főhaven → Várkút\nIndulás: 08:00\nÉrkezés: 09:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 17995 Ft\nSzabad: 7\nNap: Szerda" data-target="Várkút_Szerda" onclick="showTicket(this)">
+    <div class="day-name">Szerda</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF101R\nÚtvonal: Várkút → Főhaven\nIndulás: 06:55\nÉrkezés: 08:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 18857 Ft\nSzabad: 7\nNap: Csütörtök" data-target="Várkút_Csütörtök" onclick="showTicket(this)">
+    <div class="day-name">Csütörtök</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF110\nÚtvonal: Főhaven → Várkút\nIndulás: 12:00\nÉrkezés: 13:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 17995 Ft\nSzabad: 7\nNap: Péntek" data-target="Várkút_Péntek" onclick="showTicket(this)">
+    <div class="day-name">Péntek</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF110R\nÚtvonal: Várkút → Főhaven\nIndulás: 13:05\nÉrkezés: 14:00\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 17131 Ft\nSzabad: 7\nNap: Szombat" data-target="Várkút_Szombat" onclick="showTicket(this)">
+    <div class="day-name">Szombat</div>
+</div>
+
+<div class="day-card" data-info="Járatszám: BF107\nÚtvonal: Főhaven → Várkút\nIndulás: 12:00\nÉrkezés: 12:55\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 17131 Ft\nSzabad: 7\nNap: Vasárnap" data-target="Várkút_Vasárnap" onclick="showTicket(this)">
+    <div class="day-name">Vasárnap</div>
+</div>
+</div>\n<div class="ticket-container" id="Várkút_Hétfő"></div>\n<div class="ticket-container" id="Várkút_Kedd"></div>\n<div class="ticket-container" id="Várkút_Szerda"></div>\n<div class="ticket-container" id="Várkút_Csütörtök"></div>\n<div class="ticket-container" id="Várkút_Péntek"></div>\n<div class="ticket-container" id="Várkút_Szombat"></div>\n<div class="ticket-container" id="Várkút_Vasárnap"></div>\n</div>\n</body></html>
