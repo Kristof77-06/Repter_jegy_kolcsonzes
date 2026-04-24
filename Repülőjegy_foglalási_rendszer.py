@@ -150,7 +150,7 @@ h1 {
     max-width: 1100px;
     margin: 25px auto;
     background: white;
-    border-radius: 14px;
+    border-radius: 0px;
     padding: 18px 20px 22px 20px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.08);
     border: 1px solid #dde3f0;
@@ -172,7 +172,7 @@ h1 {
 .day-card {
     flex: 1;
     background: #f0f3ff;
-    border-radius: 10px;
+    border-radius: 0px;
     padding: 10px 8px;
     text-align: center;
     cursor: pointer;
@@ -216,7 +216,7 @@ h1 {
 .ticket-box {
     display: flex;
     justify-content: space-between;
-    border-radius: 12px;
+    border-radius: 0px;
     padding: 12px 14px;
     margin-bottom: 10px;
     background: #ffffff;
@@ -282,7 +282,7 @@ h1 {
     padding: 6px 10px;
     background: #1f6feb;
     color: white;
-    border-radius: 16px;
+    border-radius: 0px;
     font-weight: bold;
     font-size: 13px;
     cursor: pointer;
@@ -297,7 +297,7 @@ h1 {
     padding: 6px 10px;
     background: #c0392b;
     color: white;
-    border-radius: 16px;
+    border-radius: 0px;
     font-weight: bold;
     font-size: 13px;
 }
@@ -308,7 +308,7 @@ h1 {
     left: 50%;
     transform: translate(-50%, -50%);
     background: white;
-    border-radius: 18px;
+    border-radius: 0px;
     padding: 20px 22px 24px 22px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     z-index: 9999;
@@ -485,7 +485,7 @@ function openTicket(jaratszam, utvonal, indul, erkezik, repulo, kapu, szabad, na
     const datumTeljes = kovetkezoDatum(napnev);
 
     // Csak a számok maradjanak: 2026. május 1. → 2026. 1.
-    const datumRovid = datumTeljes.replace(/[^0-9\\.\\s]/g, "").trim();
+    const datumRovid = datumTeljes.replace().trim();
 
     var html = "";
     html += '<div class="ticket-popup">';
@@ -495,7 +495,7 @@ function openTicket(jaratszam, utvonal, indul, erkezik, repulo, kapu, szabad, na
 
     // Dátum az indulás–érkezés fölött
     html += '<div style="font-size:18px; font-weight:bold; margin-bottom:12px; text-align:center;">'
-         + datumRovid +
+         + datumRovid + " (" + napnev + ") "
          '</div>';
 
     // Jegy doboz – belső kék keret nélkül
