@@ -317,7 +317,7 @@ var varosLista = [];
 for v in cel_varosok:
     html += f"varosLista.push('{v}');\n"
 html += """
-// hétfővel kezdődő hét, következő adott nap dátuma
+// Következő adott nap dátuma (hétfővel kezdődő hét)
 function kovetkezoDatum(napNev) {
     const napok = ["Hétfő","Kedd","Szerda","Csütörtök","Péntek","Szombat","Vasárnap"];
     const mai = new Date();
@@ -380,18 +380,20 @@ function showTicket(elem) {
         return;
     }
 
-    var blocks = info.split("\n\n");
+    // ÚJ: <br><br> alapú blokkok
+    var blocks = info.split("<br><br>");
 
+    // Rendezés indulási idő szerint
     blocks.sort(function(a, b) {
-        var timeA = a.split("Indulás:")[1].split("\n")[0].trim();
-        var timeB = b.split("Indulás:")[1].split("\n")[0].trim();
+        var timeA = a.split("Indulás: ")[1].split("<br>")[0].trim();
+        var timeB = b.split("Indulás: ")[1].split("<br>")[0].trim();
         return timeA.localeCompare(timeB);
     });
 
     var html = "";
 
     blocks.forEach(function(block) {
-        var lines = block.split("\n");
+        var lines = block.split("<br>");
 
         var jaratszam = lines.find(x => x.startsWith("Járatszám: ")).replace("Járatszám: ", "");
         var utvonal   = lines.find(x => x.startsWith("Útvonal: ")).replace("Útvonal: ", "");
@@ -512,8 +514,9 @@ for varos in cel_varosok:
             else:
                 css = "day-card"
 
-            info = "\n\n".join(
-                "\n".join([
+            # ÚJ: <br> alapú info-blokk, GitHub-biztos
+            info = "<br><br>".join(
+                "<br>".join([
                     f"Járatszám: {j.flight.jaratszam}",
                     f"Útvonal: {jarat_utvonal(j.flight)}",
                     f"Indulás: {j.indul[:-3]}",
@@ -547,6 +550,7 @@ for varos in cel_varosok:
 '''
     html += "</div>\n"
 
+    # Jegyek helye
     for nap in napok:
         unique_id = f"{varos}_{nap}".replace(" ", "_")
         html += f'<div class="ticket-container" id="{unique_id}"></div>\n'
