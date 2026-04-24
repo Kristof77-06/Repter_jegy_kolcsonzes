@@ -112,6 +112,8 @@ cel_varosok = sorted(set(JARAT_VAROS_MAP.values()))
 varos_nap_jarat = {v: {n: [] for n in napok} for v in cel_varosok}
 for s in schedule_entries:
     varos_nap_jarat[s.flight.varos][s.nap].append(s)
+
+
 html = """
 <!DOCTYPE html>
 <html lang="hu">
@@ -126,7 +128,6 @@ body {
     margin: 20px;
 }
 
-/* Logó jobb felső sarokban */
 .logo-container {
     position: fixed;
     top: 10px;
@@ -263,8 +264,6 @@ body {
     font-weight: bold;
     font-size: 17px;
 }
-"""
-html += """
 
 /* Popup nagy jegy nézethez – a jegy formátuma megegyezik a ticket-box-szal */
 .ticket-popup {
@@ -309,6 +308,8 @@ html += """
 </style>
 """
 html += """
+</style>
+
 <script>
 var varosLista = [];
 """
@@ -421,17 +422,17 @@ function showTicket(elem) {
         if (ar === "Betelt") {
             html += '<div class="ar-betelt">Betelt</div>';
         } else {
-            html += `<div class="ar-button" onclick="openTicket(
-                '${jaratszam}',
-                '${utvonal}',
-                '${indul}',
-                '${erkezik}',
-                '${repulo}',
-                '${kapu}',
-                '${szabad}',
-                '${napnev}',
-                '${ar}'
-            )">${ar}</div>`;
+            html += '<div class="ar-button" onclick="openTicket(\\''
+                + jaratszam + '\\', \\''
+                + utvonal   + '\\', \\''
+                + indul     + '\\', \\''
+                + erkezik   + '\\', \\''
+                + repulo    + '\\', \\''
+                + kapu      + '\\', \\''
+                + szabad    + '\\', \\''
+                + napnev    + '\\', \\''
+                + ar        + '\\')">'
+                + ar + '</div>';
         }
 
         html += '</div>';
@@ -477,6 +478,7 @@ function openTicket(jaratszam, utvonal, indul, erkezik, repulo, kapu, szabad, na
 function closePopup() {
     document.getElementById("popup").style.display = "none";
 }
+
 </script>
 </head>
 <body>
@@ -550,8 +552,10 @@ for varos in cel_varosok:
         html += f'<div class="ticket-container" id="{unique_id}"></div>\\n'
 
     html += "</div>\\n"
-
-html += "</body></html>"
+html += """
+</body>
+</html>
+"""
 
 with open("varos_naptarak.html", "w", encoding="utf-8-sig") as f:
     f.write(html)

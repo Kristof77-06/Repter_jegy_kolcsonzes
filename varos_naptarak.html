@@ -12,7 +12,6 @@ body {
     margin: 20px;
 }
 
-/* Logó jobb felső sarokban */
 .logo-container {
     position: fixed;
     top: 10px;
@@ -150,7 +149,6 @@ body {
     font-size: 17px;
 }
 
-
 /* Popup nagy jegy nézethez – a jegy formátuma megegyezik a ticket-box-szal */
 .ticket-popup {
     position: fixed;
@@ -190,6 +188,8 @@ body {
     float: right;
     margin-top: 15px;
 }
+
+</style>
 
 </style>
 
@@ -301,17 +301,17 @@ function showTicket(elem) {
         if (ar === "Betelt") {
             html += '<div class="ar-betelt">Betelt</div>';
         } else {
-            html += `<div class="ar-button" onclick="openTicket(
-                '${jaratszam}',
-                '${utvonal}',
-                '${indul}',
-                '${erkezik}',
-                '${repulo}',
-                '${kapu}',
-                '${szabad}',
-                '${napnev}',
-                '${ar}'
-            )">${ar}</div>`;
+            html += '<div class="ar-button" onclick="openTicket(\''
+                + jaratszam + '\', \''
+                + utvonal   + '\', \''
+                + indul     + '\', \''
+                + erkezik   + '\', \''
+                + repulo    + '\', \''
+                + kapu      + '\', \''
+                + szabad    + '\', \''
+                + napnev    + '\', \''
+                + ar        + '\')">'
+                + ar + '</div>';
         }
 
         html += '</div>';
@@ -356,6 +356,7 @@ function openTicket(jaratszam, utvonal, indul, erkezik, repulo, kapu, szabad, na
 function closePopup() {
     document.getElementById("popup").style.display = "none";
 }
+
 </script>
 </head>
 <body>
@@ -598,4 +599,6 @@ function closePopup() {
 <div class="day-card" data-info="Járatszám: BF107\nÚtvonal: Főhaven → Várkút\nIndulás: 12:00\nÉrkezés: 12:55\nRepülő: DHC-6 Twin Otter\nKapu: 1\nJegyár: 17131 Ft\nSzabad: 7\nNap: Vasárnap" data-target="Várkút_Vasárnap" onclick="showTicket(this)">
     <div class="day-name">Vasárnap</div>
 </div>
-</div>\n<div class="ticket-container" id="Várkút_Hétfő"></div>\n<div class="ticket-container" id="Várkút_Kedd"></div>\n<div class="ticket-container" id="Várkút_Szerda"></div>\n<div class="ticket-container" id="Várkút_Csütörtök"></div>\n<div class="ticket-container" id="Várkút_Péntek"></div>\n<div class="ticket-container" id="Várkút_Szombat"></div>\n<div class="ticket-container" id="Várkút_Vasárnap"></div>\n</div>\n</body></html>
+</div>\n<div class="ticket-container" id="Várkút_Hétfő"></div>\n<div class="ticket-container" id="Várkút_Kedd"></div>\n<div class="ticket-container" id="Várkút_Szerda"></div>\n<div class="ticket-container" id="Várkút_Csütörtök"></div>\n<div class="ticket-container" id="Várkút_Péntek"></div>\n<div class="ticket-container" id="Várkút_Szombat"></div>\n<div class="ticket-container" id="Várkút_Vasárnap"></div>\n</div>\n
+</body>
+</html>
